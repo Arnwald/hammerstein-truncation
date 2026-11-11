@@ -1,0 +1,45 @@
+# Test system of the measurement-chain check: a pure Hammerstein cascade with
+# infinitely many orders,
+#
+#   y = B_1[x] + eps_o B_o[F_+(x) - x] + eps_e B_e[l(x)]
+#
+# F_+(x) = rho arctan(x/rho) (odd), l(x) = (x/rho)^2 / (1 + (x/rho)^2) (even),
+# rho = 2: singularities at +-i rho, harmonics in closed form at every level.
+# Kernels: G_1 = B_1, G_n = eps_o c_n B_o (n odd >= 3), G_n = eps_e c_n B_e
+# (n even), with c_(2k+1) = (-1)^k rho^(-2k) / (2k+1) and
+# c_(2k) = (-1)^(k+1) rho^(-2k).
+#
+# eps_o and eps_e put |G_3| and |G_2| at -50 dB re |G_1| at 1 kHz (checked by
+# the test statics::tests::test_system_levels).
+#
+# Filters: Butterworth sections [cutoff Hz, order] and peaking equalizers
+# [frequency Hz, Q, gain dB], applied in the order high-pass, peaking, low-pass.
+# B_1 is a second-order low-pass; B_o and B_e are band-pass filters with one
+# peaking section each. Their parameters were drawn once at random.
+name = "static_arctan2.0"
+fs = 96000.0
+
+# B_1[x]
+[[branch]]
+kind = "linear"
+eps = 1.0
+filter = { lowpass = [20966.259515087295, 2] }
+
+# eps_o B_o[F_+(x) - x]: odd orders >= 3
+[[branch]]
+kind = "arctan"
+rho = 2.0
+minus_linear = true
+eps = 4.236695496593347e-2
+level_db = -50.0
+at_hz = 1000.0
+filter = { highpass = [68.79768727946026, 4], peq = [[2415.3883795002826, 1.0085877732505768, -4.757109171848752]], lowpass = [8695.568391059796, 2] }
+
+# eps_e B_e[l(x)]: even orders
+[[branch]]
+kind = "lorentz"
+rho = 2.0
+eps = 1.2529104445016034e-2
+level_db = -50.0
+at_hz = 1000.0
+filter = { highpass = [29.73958908104837, 2], peq = [[6385.626813265295, 1.0460129842804609, 3.6075825205620404]], lowpass = [8626.081678104223, 4] }
